@@ -67,22 +67,29 @@ def get_user_input():
 
 input_df = get_user_input()
 
-# --- 4. PREDICTION ---
+# --- 4. PREDICTION LOGIC ---
 if st.button("Calculate Stroke Risk"):
-    # Ensure columns are in the exact same order as training
+    # Ensure columns match training
     input_df = input_df[model_features]
     
-    prediction = model.predict(input_df)[0]
-    probability = model.predict_proba(input_df)[0][1]
+    # Get the probability of a stroke (Class 1)
+    # result is a list like [0.85, 0.15] -> 0.15 is the probability of stroke
+    probability = model.predict_proba(input_df)[0][1] 
 
-    st.subheader("Result:")
-    if prediction == 1:
-        st.error(f"⚠️ HIGH RISK: The model predicts a high risk of stroke.")
-    else:
-        st.success(f"✅ LOW RISK: The model predicts a low risk of stroke.")
+    st.subheader("Assessment Result:")
+
+    # Define your Risk Tiers
+    if probability < 0.30:
+        st.success(f"🟢 **LOW RISK** ({probability:.1%})")
+        st.write("Your clinical markers are within a healthy range. Continue regular check-ups.")
         
-    st.info(f"Probability Score: {probability:.2%}")
-    
-    # Contextual Disclaimer
+    elif 0.30 <= probability < 0.60:
+        st.warning(f"🟡 **MEDIUM RISK** ({probability:.1%})")
+        st.write("Some markers are elevated. We recommend discussing these results with a GP.")
+        
+    else:
+        st.error(f"🔴 **HIGH RISK** ({probability:.1%})")
+        st.write("Strong correlation with high-risk stroke profiles. Please seek medical advice.")
 
-    st.caption("**Disclaimer:** This is a prototype AI tool for educational purposes. Always consult a medical professional.")
+    # Visual Progress Bar
+    st.progress(probability)
