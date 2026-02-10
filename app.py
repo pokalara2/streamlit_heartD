@@ -24,28 +24,27 @@ This AI tool uses clinical markers to estimate the risk of stroke.
 st.sidebar.header("Patient Data Input")
 
 def get_user_input():
-    # Basic Demographics
+    # Keep your existing inputs (age, sysBP, etc.)
     age = st.sidebar.number_input("Age", min_value=1, max_value=120, value=45)
     gender = st.sidebar.selectbox("Gender", options=["Male", "Female"])
     
-    # Vital Signs
-    sysBP = st.sidebar.number_input("Systolic Blood Pressure (sysBP)", min_value=70, max_value=250, value=120)
-    diaBP = st.sidebar.number_input("Diastolic Blood Pressure (diaBP)", min_value=40, max_value=150, value=80)
-    heartRate = st.sidebar.number_input("Heart Rate", min_value=40, max_value=200, value=75)
-    
-    # Lab Results
-    totChol = st.sidebar.number_input("Total Cholesterol", min_value=100, max_value=600, value=200)
-    glucose = st.sidebar.number_input("Glucose Level", min_value=40, max_value=500, value=100)
-    bmi = st.sidebar.number_input("BMI", min_value=10.0, max_value=60.0, value=25.0, step=0.1)
+    # NEW: Add the missing categorical inputs
+    currentSmoker = st.sidebar.selectbox("Do you smoke?", options=["Yes", "No"])
+    cigsPerDay = st.sidebar.number_input("Cigarettes per day", value=0) if currentSmoker == "Yes" else 0
+    BPMeds = st.sidebar.selectbox("Are you on Blood Pressure meds?", options=["Yes", "No"])
+    prevalentHyp = st.sidebar.selectbox("Do you have Hypertension?", options=["Yes", "No"])
+    diabetes = st.sidebar.selectbox("Do you have Diabetes?", options=["Yes", "No"])
+    prevalentStroke = st.sidebar.selectbox("Have you had a stroke before?", options=["Yes", "No"])
 
-    # --- 3. HANDLE ITERATIVE FEATURES ---
-    # We must calculate pulse_pressure because the model expects it!
-    pulse_pressure = sysBP - diaBP
-    
-    # Handle the 'male_1' or 'male_True' dummy variable
-    is_male = 1 if gender == "Male" else 0
+    # Existing lab values
+    sysBP = st.sidebar.number_input("Systolic BP", value=120)
+    diaBP = st.sidebar.number_input("Diastolic BP", value=80)
+    totChol = st.sidebar.number_input("Total Cholesterol", value=200)
+    bmi = st.sidebar.number_input("BMI", value=25.0)
+    heartRate = st.sidebar.number_input("Heart Rate", value=75)
+    glucose = st.sidebar.number_input("Glucose", value=100)
 
-    # Create the dictionary to match the training columns EXACTLY
+    # --- MATCHING THE MODEL'S EXPECTED NAMES ---
     data = {
         'age': age,
         'totChol': totChol,
@@ -54,8 +53,14 @@ def get_user_input():
         'BMI': bmi,
         'heartRate': heartRate,
         'glucose': glucose,
-        'pulse_pressure': pulse_pressure,
-        'male_1': is_male # Change this to 'male_True' if your dummies used booleans
+        'pulse_pressure': sysBP - diaBP,
+        'currentSmoker': 1 if currentSmoker == "Yes" else 0,
+        'cigsPerDay': cigsPerDay,
+        'BPMeds': 1 if BPMeds == "Yes" else 0,
+        'prevalentHyp': 1 if prevalentHyp == "Yes" else 0,
+        'diabetes': 1 if diabetes == "Yes" else 0,
+        'Gender_Male': 1 if gender == "Male" else 0,
+        'prevalentStroke_yes': 1 if prevalentStroke == "Yes" else 0
     }
     
     return pd.DataFrame([data])
@@ -79,4 +84,5 @@ if st.button("Calculate Stroke Risk"):
     st.info(f"Probability Score: {probability:.2%}")
     
     # Contextual Disclaimer
+
     st.caption("**Disclaimer:** This is a prototype AI tool for educational purposes. Always consult a medical professional.")
