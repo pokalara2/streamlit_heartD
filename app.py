@@ -69,27 +69,34 @@ input_df = get_user_input()
 
 # --- 4. PREDICTION LOGIC ---
 if st.button("Calculate Stroke Risk"):
-    # Ensure columns match training
     input_df = input_df[model_features]
-    
-    # Get the probability of a stroke (Class 1)
-    # result is a list like [0.85, 0.15] -> 0.15 is the probability of stroke
     probability = model.predict_proba(input_df)[0][1] 
 
     st.subheader("Assessment Result:")
 
-    # Define your Risk Tiers
+    # Define the Tiers
     if probability < 0.30:
         st.success(f"🟢 **LOW RISK** ({probability:.1%})")
-        st.write("Your clinical markers are within a healthy range. Continue regular check-ups.")
+        st.info("ℹ️ Your markers suggest a low probability, but lifestyle remains the best prevention.")
         
     elif 0.30 <= probability < 0.60:
         st.warning(f"🟡 **MEDIUM RISK** ({probability:.1%})")
-        st.write("Some markers are elevated. We recommend discussing these results with a GP.")
+        st.write("Some clinical markers are elevated. Consider scheduling a routine check-up to discuss these results.")
         
     else:
         st.error(f"🔴 **HIGH RISK** ({probability:.1%})")
-        st.write("Strong correlation with high-risk stroke profiles. Please seek medical advice.")
+        # High-priority warning
+        st.markdown("### 🚨 IMPORTANT NOTICE")
+        st.write("This profile strongly correlates with high-stroke-risk data. Please consult a healthcare professional as soon as possible for a formal evaluation.")
 
-    # Visual Progress Bar
+    # The visual bar
     st.progress(probability)
+
+    # --- PERMANENT MEDICAL DISCLAIMER ---
+    st.divider()
+    st.warning("""
+    **⚠️ Medical Disclaimer:** This application is an AI-powered prototype for educational and screening purposes only. 
+    It is **not** a diagnostic tool and should not replace professional medical advice, 
+    diagnosis, or treatment. If you are experiencing an emergency, please contact 
+    your local emergency services immediately.
+    """)
